@@ -14,6 +14,9 @@
       justify-content: center;
       align-items: flex-end;
       overflow: hidden;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      user-select: none;
       touch-action: none;
     }
 
@@ -30,7 +33,6 @@
       align-items: flex-end;
     }
 
-    /* Rocket nose */
     .rocket::before {
       content: '';
       position: absolute;
@@ -44,7 +46,6 @@
       border-bottom: 40px solid white;
     }
 
-    /* Fire */
     .fire {
       width: 0;
       height: 0;
@@ -93,3 +94,34 @@
 
       longPressTimer = setTimeout(() => {
         rocket.classList.add('ready');
+        isArmed = true;
+      }, 600);
+    });
+
+    rocket.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      if (!isArmed) return;
+      const currentY = e.touches[0].clientY;
+      const distance = pressStartY - currentY;
+      if (distance > 50 && !hasLaunched) {
+        rocket.classList.add('firing', 'launched');
+        hasLaunched = true;
+      }
+    });
+
+    rocket.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      clearTimeout(longPressTimer);
+      if (!hasLaunched) {
+        rocket.classList.remove('ready');
+      }
+      setTimeout(() => {
+        rocket.classList.remove('launched', 'ready', 'firing');
+        hasLaunched = false;
+      }, 2500);
+      isArmed = false;
+    });
+  </script>
+
+</body>
+</html>
