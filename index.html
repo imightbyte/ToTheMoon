@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket Launch</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: linear-gradient(to top, #001020, #003366);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .rocket {
+      width: 80px;
+      height: 150px;
+      background: white;
+      position: relative;
+      border-radius: 40px 40px 10px 10px;
+      margin-bottom: 30px;
+      transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    /* Rocket nose */
+    .rocket::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 40px solid transparent;
+      border-right: 40px solid transparent;
+      border-bottom: 40px solid white;
+    }
+
+    /* Fire */
+    .fire {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid orange;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .ready {
+      box-shadow: 0 0 20px 5px #00ffcc;
+    }
+
+    .launched {
+      transform: translateY(-110vh);
+    }
+
+    .firing .fire {
+      opacity: 1;
+      animation: firePulse 0.3s infinite alternate;
+    }
+
+    @keyframes firePulse {
+      from { transform: scaleY(1); border-top-color: orange; }
+      to { transform: scaleY(1.3); border-top-color: yellow; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="rocket" id="rocket">
+    <div class="fire"></div>
+  </div>
+
+  <script>
+    const rocket = document.getElementById('rocket');
+    let longPressTimer;
+    let pressStartY = 0;
+    let isArmed = false;
+    let hasLaunched = false;
+
+    rocket.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      pressStartY = e.touches[0].clientY;
+
+      longPressTimer = setTimeout(() => {
+        rocket.classList.add('ready');
