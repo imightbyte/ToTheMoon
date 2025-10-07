@@ -3,21 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rocket Launch</title>
+  <title>Rocket to the Moon</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
-      background: linear-gradient(to top, #001020, #003366);
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
       overflow: hidden;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
       user-select: none;
       touch-action: none;
+    }
+
+    body {
+      background: #001020;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 500vh; /* Very tall background to scroll */
+      background: linear-gradient(to top, #001020 0%, #003366 25%, #225588 50%, #4477aa 75%, #88bbff 100%);
+      transition: transform 0.8s ease-out;
+      z-index: 0;
+    }
+
+    .moon {
+      position: absolute;
+      top: 5%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.5);
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(white, #ccc);
+      border-radius: 50%;
+      box-shadow: 0 0 50px 20px #ffffff55;
+      transition: transform 0.8s ease-out, box-shadow 0.8s;
     }
 
     .rocket {
@@ -27,10 +55,10 @@
       position: relative;
       border-radius: 40px 40px 10px 10px;
       margin-bottom: 30px;
-      transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
       display: flex;
       justify-content: center;
       align-items: flex-end;
+      z-index: 1;
     }
 
     .rocket::before {
@@ -60,10 +88,6 @@
       box-shadow: 0 0 20px 5px #00ffcc;
     }
 
-    .launched {
-      transform: translateY(-110vh);
-    }
-
     .firing .fire {
       opacity: 1;
       animation: firePulse 0.3s infinite alternate;
@@ -77,16 +101,25 @@
 </head>
 <body>
 
+  <div class="scene" id="scene">
+    <div class="moon" id="moon"></div>
+  </div>
+
   <div class="rocket" id="rocket">
     <div class="fire"></div>
   </div>
 
   <script>
     const rocket = document.getElementById('rocket');
+    const scene = document.getElementById('scene');
+    const moon = document.getElementById('moon');
+
     let longPressTimer;
     let pressStartY = 0;
     let isArmed = false;
-    let hasLaunched = false;
+
+    let swipeCount = 0;
+    const totalSwipes = 5;
 
     rocket.addEventListener('touchstart', (e) => {
       e.preventDefault();
@@ -103,24 +136,46 @@
       if (!isArmed) return;
       const currentY = e.touches[0].clientY;
       const distance = pressStartY - currentY;
-      if (distance > 50 && !hasLaunched) {
-        rocket.classList.add('firing', 'launched');
-        hasLaunched = true;
+      if (distance > 50) {
+        triggerSwipe();
+        isArmed = false;
       }
     });
 
     rocket.addEventListener('touchend', (e) => {
       e.preventDefault();
       clearTimeout(longPressTimer);
-      if (!hasLaunched) {
+      if (!isArmed) {
         rocket.classList.remove('ready');
       }
-      setTimeout(() => {
-        rocket.classList.remove('launched', 'ready', 'firing');
-        hasLaunched = false;
-      }, 2500);
       isArmed = false;
     });
+
+    function triggerSwipe() {
+      rocket.classList.add('firing');
+      swipeCount++;
+
+      const progress = Math.min(swipeCount / totalSwipes, 1);
+
+      // Move background up
+      scene.style.transform = `translateY(${progress * -100}vh)`;
+
+      // Scale moon bigger
+      const scale = 0.5 + progress * 1.5;
+      moon.style.transform = `translateX(-50%) scale(${scale})`;
+      moon.style.boxShadow = `0 0 ${50 + progress * 100}px ${20 + progress * 50}px #ffffffaa`;
+
+      setTimeout(() => {
+        rocket.classList.remove('firing');
+        rocket.classList.remove('ready');
+      }, 800);
+
+      if (swipeCount >= totalSwipes) {
+        setTimeout(() => {
+          moon.style.boxShadow = '0 0 200px 80px #fff';
+        }, 1000);
+      }
+    }
   </script>
 
 </body>
