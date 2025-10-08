@@ -61,6 +61,12 @@
             z-index: 10; /* Ensure rocket is on top */
         }
 
+        .rocket-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
         .rocket-body {
             position: absolute;
             top: 40px;
@@ -105,14 +111,14 @@
             border-left: 20px solid #ff4d4d; /* Right fin */
         }
 
-        .rocket.charging {
+        .rocket-inner.charging {
             animation: shake 0.1s infinite;
         }
 
         @keyframes shake {
-            0% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-2px); }
-            100% { transform: translateX(-50%) translateY(0); }
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(0); }
         }
     </style>
 </head>
@@ -121,18 +127,22 @@
         <div class="stars"></div>
         <div class="moon"></div>
         <div class="rocket">
-            <div class="rocket-nose"></div>
-            <div class="rocket-body"></div>
-            <div class="rocket-fin-left"></div>
-            <div class="rocket-fin-right"></div>
+            <div class="rocket-inner">
+                <div class="rocket-nose"></div>
+                <div class="rocket-body"></div>
+                <div class="rocket-fin-left"></div>
+                <div class="rocket-fin-right"></div>
+            </div>
         </div>
     </div>
     <script>
         const rocket = document.querySelector('.rocket');
+        const rocketInner = document.querySelector('.rocket-inner');
         const stars = document.querySelector('.stars');
         const moon = document.querySelector('.moon');
         let swipeCount = 0;
         let isCharging = false;
+        let isCharged = false;
         let touchStartTime = 0;
         let touchStartY = 0;
         let starsOffset = 0;
@@ -148,12 +158,14 @@
             touchStartTime = Date.now();
             touchStartY = e.touches[0].clientY;
             isCharging = true;
-            rocket.classList.add('charging');
+            isCharged = false;
+            rocketInner.classList.add('charging');
             setTimeout(() => {
                 if (isCharging) {
+                    isCharged = true;
                     // You can add visual feedback for charged state if needed
                 }
-            }, 2000);
+            }, 1000);
         });
 
         rocket.addEventListener('touchmove', (e) => {
@@ -162,14 +174,15 @@
             const touchY = e.touches[0].clientY;
             const deltaY = touchStartY - touchY;
 
-            if (deltaY > 50 && Date.now() - touchStartTime >= 2000) {
-                // Swipe up detected after 2 seconds
+            if (deltaY > 50 && isCharged) {
+                // Swipe up detected after charging
                 swipeCount++;
                 isCharging = false;
-                rocket.classList.remove('charging');
+                isCharged = false;
+                rocketInner.classList.remove('charging');
 
-                // Update stars position (move down to simulate forward movement)
-                starsOffset -= (window.innerHeight / 3); // Adjust based on screen height for 3 swipes
+                // Update stars position (move up to simulate stars moving down)
+                starsOffset -= (window.innerHeight / 3); // Negative to move container up, stars down
                 stars.style.transform = `translateY(${starsOffset}px)`;
 
                 // Enlarge moon
@@ -198,7 +211,7 @@
 
         rocket.addEventListener('touchend', () => {
             isCharging = false;
-            rocket.classList.remove('charging');
+            rocketInner.classList.remove('charging');
         });
     </script>
 </body>
