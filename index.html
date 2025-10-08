@@ -1,185 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Rocket to the Moon</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      -webkit-user-select: none;
-      -webkit-touch-callout: none;
-      user-select: none;
-      touch-action: none;
-      background: #000010;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rocket to the Moon</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            touch-action: none; /* Prevent default touch behaviors */
+        }
 
-    .scene {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 400vh;
-      overflow: hidden;
-      transition: transform 0.8s ease-out;
-      z-index: 0;
-    }
+        .sky {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(to bottom, #0a0a23, #1b1b4f);
+            overflow: hidden;
+        }
 
-    /* star layers */
-    .stars, .stars2 {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      background-repeat: repeat;
-      background-position: 0 0;
-    }
-    .stars {
-      background-image: radial-gradient(white 1px, transparent 1px);
-      background-size: 3px 3px;
-      opacity: 0.4;
-    }
-    .stars2 {
-      background-image: radial-gradient(white 1.5px, transparent 1px);
-      background-size: 2px 2px;
-      opacity: 0.2;
-    }
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background: transparent;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="10" cy="10" r="1" fill="white" /><circle cx="50" cy="50" r="1.5" fill="white" /><circle cx="80" cy="20" r="1" fill="white" /><circle cx="30" cy="70" r="1.2" fill="white" /></svg>');
+            background-size: 100px 100px;
+            transition: transform 0.5s ease;
+        }
 
-    /* Moon starts small but visible on screen */
-    .moon {
-      position: absolute;
-      top: 10vh;
-      left: 50%;
-      transform: translateX(-50%) scale(0.4);
-      width: 180px;
-      height: 180px;
-      background: radial-gradient(white, #ccc);
-      border-radius: 50%;
-      box-shadow: 0 0 30px 10px #ffffff33;
-      transition: transform 0.8s ease-out, top 0.8s ease-out, box-shadow 0.8s ease-out;
-      z-index: 1;
-    }
+        .moon {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            transition: width 0.5s ease, height 0.5s ease;
+        }
 
-    .rocket {
-      width: 80px;
-      height: 150px;
-      background: white;
-      position: relative;
-      border-radius: 40px 40px 10px 10px;
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      z-index: 2;
-    }
-    .rocket::before {
-      content: '';
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 40px solid transparent;
-      border-right: 40px solid transparent;
-      border-bottom: 40px solid white;
-    }
-    .fire {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-top: 40px solid orange;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .ready {
-      box-shadow: 0 0 20px 5px #00ffcc;
-    }
-    .firing .fire {
-      opacity: 1;
-      animation: firePulse 0.3s infinite alternate;
-    }
-    @keyframes firePulse {
-      from { transform: scaleY(1); border-top-color: orange; }
-      to   { transform: scaleY(1.3); border-top-color: yellow; }
-    }
-  </style>
+        .rocket {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 100px;
+            transition: transform 0.5s ease;
+        }
+
+        .rocket.charging {
+            animation: shake 0.1s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-2px); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+    </style>
 </head>
 <body>
+    <div class="sky">
+        <div class="stars"></div>
+        <img src="https://i.imgur.com/5zK5Z8M.png" alt="Moon" class="moon">
+        <img src="https://i.imgur.com/9K7g5fL.png" alt="Rocket" class="rocket">
+    </div>
+    <script>
+        const rocket = document.querySelector('.rocket');
+        const stars = document.querySelector('.stars');
+        const moon = document.querySelector('.moon');
+        let swipeCount = 0;
+        let isCharging = false;
+        let touchStartTime = 0;
+        let touchStartY = 0;
+        let starsOffset = 0;
+        let moonSize = 80;
 
-  <div class="scene" id="scene">
-    <div class="stars"></div>
-    <div class="stars2"></div>
-    <div class="moon" id="moon"></div>
-  </div>
+        rocket.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartTime = Date.now();
+            touchStartY = e.touches[0].clientY;
+            isCharging = true;
+            rocket.classList.add('charging');
+            setTimeout(() => {
+                if (isCharging) {
+                    rocket.classList.add('charging');
+                }
+            }, 2000);
+        });
 
-  <div class="rocket" id="rocket">
-    <div class="fire"></div>
-  </div>
+        rocket.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isCharging) return;
+            const touchY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchY;
 
-  <script>
-    const rocket = document.getElementById('rocket');
-    const scene = document.getElementById('scene');
-    const moon = document.getElementById('moon');
+            if (deltaY > 50 && Date.now() - touchStartTime >= 2000) {
+                // Swipe up detected after 2 seconds
+                swipeCount++;
+                isCharging = false;
+                rocket.classList.remove('charging');
 
-    let pressStartY = 0;
-    let longPressTimer;
-    let isArmed = false;
-    let swipeCount = 0;
-    const totalSwipes = 3;
+                // Update stars position
+                starsOffset -= 100; // Move stars down
+                stars.style.transform = `translateY(${starsOffset}px)`;
 
-    rocket.addEventListener('touchstart', e => {
-      e.preventDefault();
-      pressStartY = e.touches[0].clientY;
-      longPressTimer = setTimeout(() => {
-        rocket.classList.add('ready');
-        isArmed = true;
-      }, 600);
-    });
+                // Enlarge moon
+                moonSize += 40;
+                moon.style.width = `${moonSize}px`;
+                moon.style.height = `${moonSize}px`;
 
-    rocket.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if (!isArmed) return;
-      const distance = pressStartY - e.touches[0].clientY;
-      if (distance > 50) {
-        doSwipe();
-        isArmed = false;
-      }
-    });
+                // Move rocket up
+                const rocketMove = swipeCount * 200;
+                rocket.style.transform = `translateX(-50%) translateY(-${rocketMove}px)`;
 
-    rocket.addEventListener('touchend', e => {
-      e.preventDefault();
-      clearTimeout(longPressTimer);
-      if (!isArmed) rocket.classList.remove('ready');
-      isArmed = false;
-    });
+                // Check if rocket reached the moon
+                if (swipeCount >= 3) {
+                    alert('Rocket has reached the moon!');
+                    // Reset game
+                    swipeCount = 0;
+                    starsOffset = 0;
+                    moonSize = 80;
+                    stars.style.transform = `translateY(0px)`;
+                    moon.style.width = `80px`;
+                    moon.style.height = `80px`;
+                    rocket.style.transform = `translateX(-50%) translateY(0px)`;
+                }
+            }
+        });
 
-    function doSwipe() {
-      rocket.classList.add('firing');
-      swipeCount++;
-      const progress = Math.min(swipeCount / totalSwipes, 1);
-
-      // Move stars upward with each swipe
-      scene.style.transform = `translateY(${progress * -100}vh)`;
-
-      // Moon grows and lowers slightly each swipe
-      const scale = 0.4 + progress * 1.2;   // from 0.4 to ~1.6
-      const top = 10 + progress * 10;       // from 10vh to 20vh
-      moon.style.transform = `translateX(-50%) scale(${scale})`;
-      moon.style.top = `${top}vh`;
-      moon.style.boxShadow = `0 0 ${30 + progress * 120}px ${10 + progress * 50}px #ffffffaa`;
-
-      setTimeout(() => {
-        rocket.classList.remove('firing');
-        rocket.classList.remove('ready');
-      }, 800);
-    }
-  </script>
-
+        rocket.addEventListener('touchend', () => {
+            isCharging = false;
+            rocket.classList.remove('charging');
+        });
+    </script>
 </body>
 </html>
