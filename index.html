@@ -183,7 +183,7 @@
                 rocketInner.classList.remove('charging');
 
                 // Update stars position (move pattern down)
-                starsOffset += (window.innerHeight / 3);
+                starsOffset -= (window.innerHeight / 3);
                 stars.style.backgroundPosition = `0px -${starsOffset}px`;
 
                 // Enlarge moon
