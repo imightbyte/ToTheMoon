@@ -182,7 +182,7 @@
                 rocketInner.classList.remove('charging');
 
                 // Update stars position (move up to simulate stars moving down)
-                starsOffset -= (window.innerHeight / 3); // Negative to move container up, stars down
+                starsOffset += (window.innerHeight / 3); // Negative to move container up, stars down
                 stars.style.transform = `translateY(${starsOffset}px)`;
 
                 // Enlarge moon
