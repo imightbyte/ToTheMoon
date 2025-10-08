@@ -11,6 +11,10 @@
             height: 100%;
             overflow: hidden;
             touch-action: none; /* Prevent default touch behaviors */
+            user-select: none; /* Disable text selection */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE/Edge */
         }
 
         .sky {
@@ -40,6 +44,9 @@
             transform: translateX(-50%);
             width: 80px;
             height: 80px;
+            background: radial-gradient(circle, #f0f0f0 60%, #a0a0a0);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
             transition: width 0.5s ease, height 0.5s ease;
         }
 
@@ -51,6 +58,51 @@
             width: 60px;
             height: 100px;
             transition: transform 0.5s ease;
+            z-index: 10; /* Ensure rocket is on top */
+        }
+
+        .rocket-body {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            background: #d3d3d3; /* Rocket body */
+        }
+
+        .rocket-nose {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 40px solid #ff4d4d; /* Rocket nose */
+        }
+
+        .rocket-fin-left {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-right: 20px solid #ff4d4d; /* Left fin */
+        }
+
+        .rocket-fin-right {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-top: 20px solid transparent;
+            border-bottom: 20px solid transparent;
+            border-left: 20px solid #ff4d4d; /* Right fin */
         }
 
         .rocket.charging {
@@ -67,8 +119,13 @@
 <body>
     <div class="sky">
         <div class="stars"></div>
-        <img src="https://i.imgur.com/5zK5Z8M.png" alt="Moon" class="moon">
-        <img src="https://i.imgur.com/9K7g5fL.png" alt="Rocket" class="rocket">
+        <div class="moon"></div>
+        <div class="rocket">
+            <div class="rocket-nose"></div>
+            <div class="rocket-body"></div>
+            <div class="rocket-fin-left"></div>
+            <div class="rocket-fin-right"></div>
+        </div>
     </div>
     <script>
         const rocket = document.querySelector('.rocket');
@@ -81,21 +138,26 @@
         let starsOffset = 0;
         let moonSize = 80;
 
-        rocket.addEventListener('touchstart', (e) => {
+        // Prevent context menu on long press
+        rocket.addEventListener('contextmenu', (e) => {
             e.preventDefault();
+        });
+
+        rocket.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent default browser actions
             touchStartTime = Date.now();
             touchStartY = e.touches[0].clientY;
             isCharging = true;
             rocket.classList.add('charging');
             setTimeout(() => {
                 if (isCharging) {
-                    rocket.classList.add('charging');
+                    // You can add visual feedback for charged state if needed
                 }
             }, 2000);
         });
 
         rocket.addEventListener('touchmove', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Prevent default browser actions
             if (!isCharging) return;
             const touchY = e.touches[0].clientY;
             const deltaY = touchStartY - touchY;
@@ -106,8 +168,8 @@
                 isCharging = false;
                 rocket.classList.remove('charging');
 
-                // Update stars position
-                starsOffset -= 100; // Move stars down
+                // Update stars position (move down to simulate forward movement)
+                starsOffset -= (window.innerHeight / 3); // Adjust based on screen height for 3 swipes
                 stars.style.transform = `translateY(${starsOffset}px)`;
 
                 // Enlarge moon
@@ -116,7 +178,7 @@
                 moon.style.height = `${moonSize}px`;
 
                 // Move rocket up
-                const rocketMove = swipeCount * 200;
+                const rocketMove = swipeCount * (window.innerHeight / 4); // Adjust for screen
                 rocket.style.transform = `translateX(-50%) translateY(-${rocketMove}px)`;
 
                 // Check if rocket reached the moon
